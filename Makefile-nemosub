@@ -1,0 +1,106 @@
+#
+#
+## --------- BEGIN EDIT  --------- ##
+
+## compilers:
+CC = g++
+
+#DEBUG=1
+HAS_GSL=1
+NEMOSUB=1
+
+BIN_INSTALL = ~/bin/
+
+## ---------- END EDIT ---------- ##
+#GSL_PATH = /cluster/apps/gsl/1.12/x86_64/gcc_4.1.2/
+GSL_PATH = /usr/
+LD_OPTS += -L$(GSL_PATH)lib -lgsl -lgslcblas
+C_OPTS += -DHAS_GSL -DNEMOSUB
+CCINCL += -I$(GSL_PATH)include
+
+ifdef DEBUG
+BIN_NAME = nemosubD
+else
+BIN_NAME = nemosub
+endif
+
+#warnings:
+#W_OPTS = -Wall
+
+#optimizations:
+O_OPTS = -Os
+
+#libraries and customizations:
+
+ifdef DEBUG
+    O_OPTS = -O0
+    C_OPTS += -D_DEBUG_ -g #-pg
+    W_OPTS = -Wall
+endif
+
+BIN = bin/$(BIN_NAME)
+CCFLAGS = $(C_OPTS) $(W_OPTS) $(O_OPTS)
+
+SRC_PATH = src/
+SOURCES = $(SRC_PATH)basicsimulation.cc\
+	$(SRC_PATH)MPImanager.cc\
+	$(SRC_PATH)fileparser.cc\
+	$(SRC_PATH)output.cc\
+	$(SRC_PATH)param.cc\
+	$(SRC_PATH)paramsparser.cc\
+	nemosub.cc
+
+OBJ_PATH = src/
+OBJECTS = $(OBJ_PATH)basicsimulation.o\
+	$(OBJ_PATH)MPImanager.o\
+	$(OBJ_PATH)fileparser.o\
+	$(OBJ_PATH)output.o\
+	$(OBJ_PATH)param.o\
+	$(OBJ_PATH)paramsparser.o\
+	nemosub.o
+
+all : bin
+
+depend:
+	/usr/X11R6/bin/makedepend -Y $(SOURCES)
+
+install: bin
+	cp $(BIN) $(BIN_INSTALL)$(BIN_NAME)
+
+bin : $(OBJECTS)
+	$(CC) -o $(BIN) $(OBJECTS) $(LD_OPTS)
+
+clean :
+	rm -f $(OBJECTS)
+
+cleaner: clean
+	rm -f $(BIN) *.bak *~
+
+$(OBJ_PATH)%.o: $(SRC_PATH)%.cc Makefile-nemosub
+	$(CC) $(CCFLAGS) -c $(SRC_PATH)$*.cc -o $(OBJ_PATH)$*.o $(CCINCL)
+nemosub.o: nemosub.cc Makefile-nemosub
+	$(CC) $(CCFLAGS) -c nemosub.cc -o nemosub.o $(CCINCL)
+
+# DO NOT DELETE THIS LINE -- make depend depends on it.
+
+src/basicsimulation.o: src/basicsimulation.h src/ttrait.h src/types.h
+src/basicsimulation.o: src/simcomponent.h src/param.h src/tmatrix.h
+src/basicsimulation.o: src/output.h src/lifecycleevent.h src/metapop.h
+src/basicsimulation.o: src/indfactory.h src/MPStatHandler.h src/stathandler.h
+src/basicsimulation.o: src/binarydataloader.h src/fileparser.h
+src/basicsimulation.o: src/paramsparser.h src/MPImanager.h
+src/MPImanager.o: src/MPImanager.h src/MPStatHandler.h src/stathandler.h
+src/MPImanager.o: src/metapop.h src/types.h src/indfactory.h src/ttrait.h
+src/MPImanager.o: src/simcomponent.h src/param.h src/tmatrix.h src/output.h
+src/MPImanager.o: src/binarydataloader.h src/fileparser.h src/paramsparser.h
+src/MPImanager.o: src/binarydatasaver.h src/lifecycleevent.h
+src/fileparser.o: src/fileparser.h src/paramsparser.h src/output.h
+src/output.o: src/output.h src/MPImanager.h src/MPStatHandler.h
+src/output.o: src/stathandler.h
+src/param.o: src/param.h src/tmatrix.h src/output.h src/types.h
+src/paramsparser.o: src/paramsparser.h src/output.h
+src/nemosub.o: src/fileparser.h src/paramsparser.h src/basicsimulation.h
+src/nemosub.o: src/ttrait.h src/types.h src/simcomponent.h src/param.h
+src/nemosub.o: src/tmatrix.h src/output.h src/lifecycleevent.h src/metapop.h
+src/nemosub.o: src/indfactory.h src/MPStatHandler.h src/stathandler.h
+src/nemosub.o: src/binarydataloader.h src/MPImanager.h
